@@ -1,0 +1,25 @@
+== HW04 Hints ==
+
+ - You can read a line from standard input with "fgets(buf, max, stdin)"
+   see: man 3 fgets
+ - You can allocate your input buffer as an array on the stack. No test string will be longer
+   than 80 characters.
+ - You can sort with the "qsort" library function.
+   see: man 3 qsort
+ - You can compare two strings with "strcmp"
+   see: man 3 strcmp
+ - You'll need to write a wrapper function around strcmp to make the types match,
+   since strcmp works with strings and qsort expects void*'s.
+
+== Static Analysis ==
+
+clang-check -analyze *.c --
+valgrind --leak-check=yes -q ./sort-strings < input
+
+== HW04x Hints ==
+
+ - I recommend building a dynamic array data structure (struct, functions) to store strings.
+   https://en.wikipedia.org/wiki/Dynamic_array
+ - End of file can be detected with feof(stdin)
+   man feof
+
