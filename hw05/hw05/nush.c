@@ -56,6 +56,10 @@ void run_command(char* s) {
 }
 
 void execute_command(char** args) {
+  if(args[0] == 0) {
+    printf("Invalid number of arguments given\n"); 
+    exit(-1);
+  }
   // deals with exit command
   if(strcmp(args[0],"exit") == 0) {
     kill(getppid(), SIGUSR1);
@@ -94,6 +98,10 @@ void execute_command(char** args) {
 void change_directory(char** args) {
   char path[256];
   getcwd(path, sizeof(path));
+  if(args[1] == 0) {
+    printf("Invalid number of arguments given\n"); 
+    return;
+  }
   int n = chdir(args[1]);
   if(n == -1) {
     printf("Directory not found: %s\n",args[1]);
@@ -111,6 +119,10 @@ void redirect(int i, int r, char** args) {
   while(args[i]){
     args2[i-j] = args[i];
     i++;
+  }
+  if(args[0] == 0 || j == i) {
+    printf("Invalid number of arguments given\n"); 
+    exit(-1);
   }
   args2[i-j] = 0;
   int std;
