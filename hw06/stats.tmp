@@ -1,0 +1,9 @@
+
+== nu_mem stats ==
+malloc count: 25002
+malloc bytes: 53876168
+free count: 25002
+free bytes: 53915596
+malloc chunks: 445
+free chunks: 27
+free list length: 112
