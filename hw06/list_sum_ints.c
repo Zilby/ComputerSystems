@@ -26,7 +26,7 @@ free_ilist(icell* xs)
     }
 
     free_ilist(xs->next);
-    nu_free(xs);
+    nu_free(xs); 
 }
 
 int
@@ -34,16 +34,12 @@ sum_upto(int nn)
 {
     icell* xs = 0;
     for (int ii = 0; ii < nn; ++ii) {
-      printf("1: %d\n", ii);
         xs = cons(ii, xs);
     }
-
     int sum = 0;
     for (icell* pp = xs; pp != 0; pp = pp->next) {
-      printf("2: %d\n", sum);
         sum += pp->num;
     }
-
     free_ilist(xs);
     return sum;
 }
@@ -56,7 +52,6 @@ main(int argc, char* argv[])
     
     int s0 = sum_upto(nn);
     printf("Sum from 0 to %d = %d\n", nn - 1, s0);
-    
     int s1 = sum_upto(nn);
     printf("Sum from 0 to %d = %d\n", nn - 1, s1);
 

@@ -14,7 +14,7 @@ main(int _ac, char* _av[])
     int*  sizes  = nu_malloc(sizeof(int)   * ASIZE);
         
     int64_t foo = 0;
-
+    
     for (int ii = 0; ii < ASIZE; ++ii) {
         int nn = trand_range(1, 1024);
         if (ii % 1000 == 0) {
@@ -38,7 +38,6 @@ main(int _ac, char* _av[])
             foo = foo - jj;
         }
     }
-
     for (int ii = 0; ii < ASIZE; ++ii) {
         if (arrays[ii]) {
             nu_free(arrays[ii]);
