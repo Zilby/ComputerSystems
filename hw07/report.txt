@@ -1,0 +1,47 @@
+Alexander Zilbersher
+HW07 Report
+
+Computer: Macbook Air 2016
+CPU: Intel(R) Core(TM) i7-5650U CPU @ 2.20GHz
+RAM: 7885MiB
+OS: Ubuntu Linux
+
+Stats (Times taken for 1,000,000):
++------------+---------+-----------+--------+
+| Chunk Size | HW06    | Optimized | System |
++------------+---------+-----------+--------+
+| 1k         | > 5 min | 25.304    | 0.321  |
++------------+---------+-----------+--------+
+| 64k        | 2.794   | 0.124     | 0.321  |
++------------+---------+-----------+--------+
+| 1024k      | 0.178   | 0.121     | 0.321  |
++------------+---------+-----------+--------+
+
+Chunk sizes affect the performance of our allocators in a number of ways.
+From our data we can deduce that at least in this test case, smaller chunk
+sizes will make our allocators take far longer than they would otherwise,
+while larger chunk sizes will make our allocators take far less time.
+In the case of our HW06 allocator, this difference is enormous due to its
+poor optimization, with the larger chunk size allowing it to finish in a 
+fraction of the original time while the smaller one caused it to not even
+finish after 5 minutes had passed.
+
+There are a few reasons these differences in time occur. Firstly, when our
+chunk size is bigger, we don't have to call mmap as often. This is because
+there's more likely to be a cell in our free list that fits the requested
+size for allocation. Since our cell sizes are bigger and we always split
+off what we don't use from a given allocation, one newly allocated cell can
+be used for far longer with a larger chunk size than a smaller one since it
+will take longer for the split off portion to be too small to use. However,
+the greater effect of not calling mmap as often is that it means our free
+list itself is far smaller. Every time we make a new cell, we add its split
+portion to the free list, meaning we gain a new free cell every time our 
+current split portion(s) is(are)n't large enough for the memory we wish to
+allocate. This means that with a chunk size of 1K for example, our free list
+is going to balloon in size dramatically, and all of our functions such as
+coalescing and inserting that iterate through our free list are going to take
+absurd amounts of time.
+
+Finally, it's important to note that having too large a block size could
+affect performance due to the time required to mmap that much memory, but in
+the case of our program this isn't a relevant issue. 
