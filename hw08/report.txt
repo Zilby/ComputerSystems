@@ -1,0 +1,44 @@
+Alexander Zilbersher
+Hw08 Report
+
+Test1 start: 9324875923874598
+Test1 count: 59
+
+Test2 start: 14254234534549
+Test2 count: 648
+
+Tests repeated 4 times, gave consistent results
+
++--------------+--------+--------+
+| Threads      | Test 1 | Test 2 |
++--------------+--------+--------+
+| 1            | 2.189s | 2.392s |
++--------------+--------+--------+
+| 4            | 1.204s | 1.250s |
++--------------+--------+--------+
+| Parallel     | 1.818  | 1.913  |
+| Speedup (4)  |        |        |
++--------------+--------+--------+
+| 16           | 1.018s | 1.035s |
++--------------+--------+--------+
+| Parallel     | 2.150  | 2.311  |
+| Speedup (16) |        |        |
++--------------+--------+--------+
+
+The results from these tests were as expected based on the inputs that were
+given. Having more threads in both tests 1 and 2 resulted in shorter run times,
+the first parallel speedup from 1 to 4 threads being larger relative to the
+second from 4 to 16. The run time for having multiple threads was shorter
+because the factorization process for the jobs could be handled simultaneously.
+The speedup from 4 threads to 16 was less impactful than the speedup from 1 to
+4 because having only one thread slows down the process significantly due to the
+lack of concurrency.
+
+The speedup is also hindered by the use of mutexes in all of the threads. These
+slow down each individual thread, and the it can be seen by the user time (not
+shown above) that the more threads we add the more user time it takes. Finally,
+our times for each of our tests are similar due to the numbers given. Having many
+more numbers will take our processes longer to complete them all, but having larger
+numbers makes the factorization process take longer as well. We can see marginally
+that having more threads does affect our second test case more than the first due
+to the greater number of jobs available, allowing more jobs to do work overall. 
