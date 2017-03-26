@@ -1,0 +1,38 @@
+Alexander Zilbersher
+Hw09 Report
+
++-------------------+---------+---------+
+| Processes/Threads | Hw09    | Hw08    |
++-------------------+---------+---------+
+| 1                 | 36.407s | 77.157s |
++-------------------+---------+---------+
+| 4                 | 18.588s | 32.135s |
++-------------------+---------+---------+
+| Parallel          | 17.819s | 45.022s |
+| Speedup (4)       |         |         |
++-------------------+---------+---------+
+| 16                | 17.172s | 30.274s |
++-------------------+---------+---------+
+| Parallel          | 19.235s | 46.883s |
+| Speedup (16)      |         |         |
++-------------------+---------+---------+
+
+The results from these tests were as expected based on the inputs that were
+given. Having more processes running concurrently resulted in shorter run times,
+the first parallel speedup from 1 to 4 threads being larger relative to the
+second from 4 to 16. The run time for having multiple processes was shorter
+because the factorization process for the jobs could be handled simultaneously.
+The speedup from 4 threads to 16 was less impactful than the speedup from 1 to
+4 because having only one process slows down the process significantly due to
+the lack of concurrency. The speedup between 4 and 16 would have been more
+impactful if there weren't certain specific factorizations that were taking up
+the longest period of time, which overall hindered the amount having more
+processes could speed things up.
+
+Hw08's threads performed worse than hw09's processes, but had similar parallel
+speedups in their results. This is in part due to the way Hw08 handled its
+queue which made even the single thread take longer to execute, but also due
+to the time taken up by the mutexes and other factors that threading entails.
+Admittedly, one would expect a speedup from threads simply due to the lower
+costs of establishing, terminating and switching between threads, but the other
+factors were clearly more impactful. 
