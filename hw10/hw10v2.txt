@@ -1,0 +1,276 @@
+CS3650, Spring 2017, HW10
+
+0. What's your name?
+
+Alexander Zilbersher
+
+0.5. What revision of xv6 are you looking at to answer questions?
+(e.g. rev8, rev9, git head, the copy in /course/cs3650/..., etc)
+
+git head
+
+In this homework, you will gain a broad knowledge of xv6, based
+on the original UNIX, Sixth Edition (also called Version 6 UNIX).
+This was the first versoin of UNIX to be widely released outside
+Bell Labs.  It was released in May, 1975, for the DEC PDP-11 minicommputer.
+Xv6 is made available by MIT:
+    http://pdos.csail.mit.edu/6.828/2014/xv6.html
+The contents there, xv6-rev6.pdf, nicely organizes the files according
+to purpose.
+
+Many of these pointers are reproduced on our local, hyper-referenced copy:
+    http://www.ccs.neu.edu/course/cs3650/unix-xv6/
+Be sure to also read the
+    "HELP on using the doxygen interface to browse the code"
+on that page, for tips to efficiently use the search, find the source code,
+see who calls a function, etc.
+
+One other pointer that will help you is that it often pays to
+read the (relatively short) .h file before reading the corresponding .c file.
+The .h file provides the data structures and the names of functions
+that manipulate them.
+
+Your job is to read the source code, and answer the following questions.
+For those questions of the form "Where is", you must indicate:
+ (a) the filename;
+ (b) the line number within that file; and
+ (c) the data structure or function name
+
+PROCESSES:
+
+1.  Where is the data structure for the process table?
+
+--------------------------------------------------------------------------
+    Line 10-13 of proc.c contains the struct ptable. 
+--------------------------------------------------------------------------
+
+2.  When there is a context switch from one process to another, where are
+    the values of the registers of the old process saved?
+
+--------------------------------------------------------------------------
+    These values are pushed onto the current process's kernel stack.
+
+3.  What are the possible states of a process?  Also, give a brief phrase
+    describing the purpose of each state.
+
+--------------------------------------------------------------------------
+    A process state can indicate that a process is ready to be allocated 
+    (UNUSED), has been given a unique pid and initialized by allocproc 
+    (EMBRYO), is ready to run (RUNNABLE), is running (RUNNING), is waiting 
+    for its parent to call wait to learn of its exit (ZOMBIE), or waiting 
+    for the scheduler to wake it up and mark it as runnable (SLEEPING). 
+--------------------------------------------------------------------------
+
+4.  What is the function that does a context switch between two
+    processes?
+
+--------------------------------------------------------------------------
+    Line 9 in switch.s, void swtch(struct context **old, struct context *new);
+--------------------------------------------------------------------------
+
+5.  Explain how the context switch function works.
+
+--------------------------------------------------------------------------
+    Context switch operates by saving and restoring contexts ie: register sets. 
+    First, context switch pushes the current registers onto the stack and saves 
+    the stack pointer in the old context. It then copies the new context to esp 
+    and pops its registers onto the new stack before returning.  
+--------------------------------------------------------------------------
+
+6.  What function calls the context switch function, and explain in detail
+    what the calling function does.  (The doxygen hyper-linking
+    is not perfect here.  You may have to use 'grep' on
+       /course/cs3650/unix-xv6/* )
+    
+--------------------------------------------------------------------------
+    Functions void scheduler(void) and void sched(void) both call swtch. 
+    sched switches from the current process to the scheduler process. This is
+    only done if the process first acquires the process table lock, releases 
+    any other locks it is currently holding, and updates its own state.
+    scheduler is fairly simple. It looks for a process with a current state 
+    of RUNNABLE by looping over the process table. It breaks the ptable.lock
+    once a loop to allow other CPUs to make context switches in the event that
+    this CPU is idle and there are no RUNNABLE processes. Once the scheduler 
+    finds a process, it sets proc, switches to this process's page table, 
+    changes the process state to RUNNING and finally calls swtch to swap to 
+    this process. 
+--------------------------------------------------------------------------
+
+PROCESS STARTUP:
+
+1.  Suppose a new program is going to start.  This requires a call to
+    the system call, exec().  On what lines does the operating system
+    create the first call frame, to be used by the user process's main()?
+
+--------------------------------------------------------------------------
+    In initcode.S on line 14-15, the function sets %eax to $SYS_exec and then
+    calls it on the next line using $T_SYSCALL. This is called through 
+    userinit -> inituvm
+--------------------------------------------------------------------------
+
+2.  [REVISED] The first call frame must have the values of the
+    local variables argc and argv.  Where is the value of argv found
+    in the exec() call?
+
+--------------------------------------------------------------------------
+    The value is the exec() call's second argument, it is defined in initcode.S
+    on line 27 as { init, 0 }. 
+--------------------------------------------------------------------------
+
+3.  [REVISED] On what lines does the function modify the process table entry
+    with the new program for the current process?
+
+--------------------------------------------------------------------------
+    In proc.c, userinit() calls allocproc() (line 87) which modifies the process
+    table entry inside the for loop at line 42. 
+--------------------------------------------------------------------------
+
+SYSTEM CALLS:
+
+In class, we discussed how a system call (e.g., open()) is really
+a function in the C runtime library, libc.so, and that function
+then calls 'syscall()' with the integer for the 'open' system call.
+This is similar to when you use 'syscall'' in the MARS assembler,
+and you put the system call number in register $v0 before the call.
+
+In these questions, we will follow the chain of control from
+a user program that calls 'open()' to the code in 'libc' to the
+syscall in the kernel, and finally to the function in the kernel
+that actually does the work of the 'open()' system call.
+
+1.  The file grep.c makes a call to 'open()'.  The definition of 'open()'
+    is inside 'usys.S'.  It makes use of the macro 'SYSCALL'.
+    Note that a macro, '$SYS_ ## name', will expand to the concatenation
+    of 'SYS_' and the value of the macro parameter, "name".
+    The assembly instruction 'int' is the interrupt instruction in
+    x86 assembly.  The 'int' assembly instruction takes as an argument
+    an integer, 'T_SYSCALL'.
+        The code in usys.S is complex because it uses the C preprocessor.
+    But, roughly, SYSCALL(open) will expand to the assembly code
+    in lines 4 though 9 of usys.S, where the (x86 assembly) instruction:
+      "movl $SYS_ ## name, %eax"
+    expands to:
+      "movl $SYS_open, %eax"
+    The value of SYS_open can be found in the include file, "syscall.h".
+
+    The instruction:
+      "int $T_SYSCALL"
+    uses information from "traps.h".  The "int" instruction is an
+    "interrupt" instruction.  It interrupts the kernel at the address
+    for interrupt number 64 (found in traps.).
+        If you do "grep SYS_open /course/cs3650/unix-xv6/*
+    it will lead you to:
+        /course/cs3650/unix-xv6/syscall.c
+    That will define the "syscalls" array, which is used by the
+    function "syscall".
+
+    Finally, here is the question:
+        Give the full details of how a call to 'open()' in grep.c will
+    call the function 'sys_open()' in sysfile.c, inside the operating
+    system kernel.
+
+--------------------------------------------------------------------------
+    First grep.c calls open(argv[i], 0) at line 56 in main. This calls 
+    open in usys.S, moving SYS_OPEN (defined in syscall.h as 10) to the 
+    eax% register and calls an interrup on T_SYSCALL (defined in traps.h
+    as 64). This triggers a call to trap(struct trapframe *tf) in 
+    trap.c . Since tf−>trapno == T_SYSCALL, trap will call syscall() after 
+    setting proc->tf to tf. syscall() in syscall.c sets an int num equal to 
+    proc−>tf−>eax (ie: SYS_OPEN). It then calls syscalls[SYS_OPEN] in 
+    the line proc−>tf−>eax = syscalls[num](); . This has been set to 
+    sys_open() in the definition of syscalls[] in syscall.c thus finally 
+    calling it in sysfile.c . 
+--------------------------------------------------------------------------
+
+FILES AND FILE DESCRIPTORS:
+
+In class, we've talked about files and file descriptors.  We have
+not yet discussed i-nodes.  For these questions, you can think of
+an i-node as a location on disk that has the "table of contents"
+for all information about a file.
+
+In these questions, we will follow the chain of control from
+open() to a file descriptor, to a "file handle" (including the
+offset into the file), to the i-node.
+[ NOTE:  What I call a "file handle", UNIX xv6 calls a "struct file". ]
+
+1.  The function 'sys_open()' returns a file descriptor 'fd'.
+    To do this, it opens a new struct file 'filealloc()',
+    and it allocates a new file descriptor with 'fdalloc()'.
+    Where is the file descriptor allocated?  Also, you will see that
+    the file descriptor is one entry in an array.  What is the algorithm
+    used to choose which entry in the array to use for the new file descriptor?
+    [ Comment:  The name 'NOFILE' means "file number".  "No." is sometimes
+      used as an abbreviation for the word "number". ]
+
+--------------------------------------------------------------------------
+    First fdalloc() uses a for loop to find and open space for the file 
+    descriptor in proc->ofile. It then places the file at this location 
+    and returns the index of the file (ie: the file descriptor) to 
+    sys_open(). 
+--------------------------------------------------------------------------
+
+2.  As you saw above, the file descriptor turned out to be an index
+    in an array.  What is the name of the array for which the file
+    descriptor is an index?  Also, what is the type of one entry in
+    that array.
+
+--------------------------------------------------------------------------
+    The name of the array is ofile. It is an array of struct file(s). 
+--------------------------------------------------------------------------
+
+3.  The type that you saw in the above question is what I was calling
+    a "struct file" (with an offset into the file, etc.).
+    What is the name of the field that holds the offset into the file?
+    We saw it in the function 'sys_open()'.
+
+--------------------------------------------------------------------------
+    The offset is stored as a uint off in the struct file. 
+    Eg: struct file *f; f−>off; 
+--------------------------------------------------------------------------
+
+4.  Remember when we mentioned a call to 'filealloc()' above?
+    Since the return value of 'filealloc()' is only a file handle,
+    we need to initialize it.  Presumably, we will initialize it with
+    a file offset of 0.  What is the line number in 'sys_open()' where
+    we initialize the file offset to 0?
+
+--------------------------------------------------------------------------
+    On line 329 of sysfile.c in sys_open() the file offset is set to 0. 
+    f->off = 0;
+--------------------------------------------------------------------------
+
+5.  The struct file type was initialized to 'FD_INODE'.  What are the
+    other types that it could have been initialized to?
+
+--------------------------------------------------------------------------
+    The other enum type options are 'FD_NONE' and 'FD_PIPE'. 
+--------------------------------------------------------------------------
+
+6.  Suppose a struct file had been initialized to FD_PIPE.  Find the
+    'struct' that holds the information about a pipe.  For each field
+    in that struct, Explain briefly (just a phrase) the purpose of that
+    field.
+
+--------------------------------------------------------------------------
+    The struct is of type pipe (stored as *pipe in the struct file). 
+    Struct pipe contains the fields struct spinlock lock 
+    (for locking the pipe), char data[PIPESIZE] (data for this pipe), 
+    uint nread (number of bytes read), uint nwrite(number of bytes written), 
+    int readopen (read fd is still open), and int writeopen 
+    (write fd is still open). 
+--------------------------------------------------------------------------
+
+7.  By examining the function 'sys_dup()', you can discover how a
+    system call to 'dup()' will manipulate both a file descriptor
+    and a "file handle".  Describe what it does in each of the
+    two cases.
+
+--------------------------------------------------------------------------
+   sys_dup() allocates a new file descriptor with fdalloc(f) (with f
+   being the file handle). If this call fails it returns -1. sys_dup()
+   manipulates the file handle by calling argfd which sets it to the 0th 
+   word−sized system call argument, calls fdalloc on it, and finally calls
+   filedup(f) which increments its ref count by 1. 
+--------------------------------------------------------------------------
+
