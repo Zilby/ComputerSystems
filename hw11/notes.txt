@@ -1,0 +1,1 @@
+https://gcc.gnu.org/onlinedocs/gcc-3.3/gcc/Thread-Local.html
