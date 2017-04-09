@@ -153,6 +153,7 @@ hw11_malloc(size_t usize)
     void* addr = mmap(0, alloc_size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
     *((int64_t*)addr) = alloc_size;
     nu_malloc_chunks += 1;
+    pthread_mutex_unlock(&mutex);
     return addr + sizeof(int64_t);
   }
 
