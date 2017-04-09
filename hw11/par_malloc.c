@@ -140,9 +140,7 @@ xmalloc(size_t usize)
   nu_free_cell* cell = free_list_get_cell(alloc_size);
   if (!cell) {
     cell = make_cell();
-  } else {
-    //printf("got a cell %d\n", cell->l_id);
-  }
+  } 
 
   // Return unused portion to free list.
   int64_t rest_size = cell->size - alloc_size;
@@ -167,9 +165,8 @@ xfree(void* addr)
   init();
   nu_free_cell* cell = (nu_free_cell*)(addr - (sizeof(int64_t) * 2));
   int64_t size = cell->size;
-  int64_t cell_id = cell->l_id;//*((int64_t*)(cell + sizeof(int64_t)));
+  int64_t cell_id = cell->l_id;
 
-  //printf("cellid: %d, size: %d\n", cell_id, size);
   pthread_mutex_lock(&(mutexes[cell_id]));
 
   if (size > CHUNK_SIZE) {
