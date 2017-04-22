@@ -1,0 +1,27 @@
+Alexander Zilbersher
+Partner: None
+HW12 Report
+
+My fuse filesystem is fairly simple and operates very much along
+the guidelines of what was given to us. It implements the page
+system managing individual directories by implementing the
+directory.h file given to us in hints.
+
+Due to time constraints and an unfortunately long amount of time
+trying to implement certain key features incorrectly, my filesystem
+is only capable of doing the bare minimum. It can create files,
+list the files in the filesystem root directory, write to small
+files, read from small files, and delete files. Due to some
+misfortune however it is unable to rename files and I do not have
+time to debug what's going on with this basic task. 
+
+If I had more time I would have been able to add a lot more
+functionality since just getting the base requirements for the
+filesystem running took an absurd amount of time, while actually
+implementing the features I do have took far less. I would also
+definitely add some more utility functions for things that I did
+quite often (like getting the last element of an slist) and try
+to reduce redundancies throughout my code. 
+
+Overall though, I'm glad my filesystem still works and does what
+I expect it to do in the files that I've tested for. 

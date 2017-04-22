@@ -1,0 +1,68 @@
+Alexander Zilbersher
+Partner: None
+HW11 Report
+
+Computer: Macbook Air 2016
+CPU: Intel(R) Core(TM) i7-5650U CPU @ 2.20GHz
+RAM: 7885MiB
+OS: Ubuntu Linux
+
+For my allocator I tried to use all of the tools at my disposal
+to make it as quick as possible. First I implemented my solution
+from hw07 to optimize the allocator for the structs that were
+often malloc'd by list_main and ivec_main. Unfortunately each of
+them used slightly different structs, so I had to check for both
+cases in my program.
+
+After implementing that, I immediately wanted each thread to have
+its own free list, and thus quickly went along implementing that.
+This step went rather smoothly, and I saw a large performance
+benefit from making this change due to less contention on the mutex.
+After that my ideas went a little bit rogue, and I implemented a
+global array of lists and list of mutexes, as well as adding an
+index identifier to each cell to indicate which list/mutex it belonged
+to when I freed them. However, this method was overly complicated and
+iterating through the central array was making my allocator even
+slower than it was before, so I ended up scrapping most of this code.
+
+Regardless, I did keep the idea of having a central free list, and
+decided to implement my code to be similar to that of google's
+tcmalloc, having each thread containing its personal cache with a
+central free list that would be used across all the threads. This
+method proved much easier to manage than my previous one, and led
+to far greater improvements in performance after tinkering with
+the cache and global free list sizes. In the end, I'm not quite sure
+where else to make my code more efficient, yet I'm still slightly
+behind the system allocator for both test cases at 1000 elements,
+but slightly ahead at 100,000 for list_main and a fair amount behind
+at 100,000 for ivec_main.
+
+
+* DNF = Did not finish *
+
++----------+--------+---------+
+| Elements | 1000   | 100,000 |
++----------+--------+---------+
+| Ivec nu  | 0.103s | DNF     |
++----------+--------+---------+
+| Ivec par | 0.016s | 1.383s  |
++----------+--------+---------+
+| Ivec sys | 0.006s | 0.342s  |
++----------+--------+---------+
+| List nu  | 3.252s | DNF     |
++----------+--------+---------+
+| List par | 0.015s | 1.264s  |
++----------+--------+---------+
+| List sys | 0.014s | 1.395s  |
++----------+--------+---------+
+
+Overall my optimizations put me far ahead of the nu allocator,
+and overall for larger element counts, my allocator was faster
+than the system allocator for list_main. That being said, while
+it was consistent at the larger sizes, my allocator was less
+consistent overall for the smaller ones compared to the system one,
+and thus was less reliable especially at the 1000 element count
+even if it was close to the same speed on average. Finally, while
+my allocator was very well optimized for the list_main, it was less
+suited for ivec_main, and thus produced worse times for the
+circumstances that that test case brought to it. 
